@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>vue百度搜索</title>
+	<script src="vue.js"></script>
+	<script src="vue-resource.js"></script>
+	<style>
+	/*高亮显示*/
+	.active{background-color: #ccc;color:#fff;}
+	</style>
+</head>
+<body>
+	<div id="demo">
+		<input type="text" placeholder="输入..." @keyup="get($event)" @keydown.down="changeDown()" @keydown.up.prevent="changeUp()" v-model="t1">
+		<ol>
+			<li v-for="value in myData" :class="{active:$index==now}">
+				{{value}}
+			</li>
+		</ol>
+		<p v-show="myData.length==0">暂无数据...</p>
+	</div>
+
+
+<script>
+	new Vue({
+		el:'#demo',
+		data:{
+			myData:[],
+			t1:'',
+			now:-1
+		},
+		methods:{
+			get:function(ev){
+				// 阻止上下键滚动获取数据
+				if(ev.keyCode==38 || ev.keyCode==40)return;
+				// enter键打开新窗口搜索
+				if(ev.keyCode==13){
+                    window.open('https://www.baidu.com/s?wd='+this.t1);
+                    this.t1='';
+                }
+                // 获取百度接口数据
+				this.$http.jsonp('https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su',{
+					wd:this.t1,
+				},{
+					// callback
+					jsonp:'cb'
+				}).then(function(res){
+					this.myData=res.data.s;
+				},function(res){
+					
+				});
+			},
+			// 上下键翻滚高亮显示并且更新输入框文本
+			changeDown:function(){
+                this.now++;
+                this.t1=this.myData[this.now];
+                if(this.now>this.myData.length-1)this.now=-1;
+            },
+            changeUp:function(){
+                this.now--;
+                this.t1=this.myData[this.now];
+                if(this.now<0)this.now=this.myData.length;
+            }
+		}
+	})
+</script>	
+</body>
+</html>
